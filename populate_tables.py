@@ -39,3 +39,6 @@ data = [
 ]
 
 cursor.execute(insert, data)
+
+mydb.commit()
+mydb.close()
