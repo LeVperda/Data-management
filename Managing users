@@ -1,0 +1,112 @@
+1. As root user: Create user matt with password test
+
+CREATE USER 'matt'@'localhost' IDENTIFIED BY 'test';
+
+
+2. Grant SELECT privilege for salesman table to matt
+As matt find all salesman id and name
+As matt try to find all customer names from customer table. What happens and why?
+
+GRANT SELECT ON mybusiness.salesman TO 'matt'@'localhost';
+
+mysql> SYSTEM mysql -u matt -p
+Enter password: ****
+
+mysql> SELECT salesman_id, name FROM salesman;
++-------------+------------+
+| salesman_id | name       |
++-------------+------------+
+|        5001 | James Hoog |
+|        5002 | Nail Knite |
+|        5003 | Lauson Hen |
+|        5005 | Pit Alex   |
+|        5006 | Mc Lyon    |
+|        5009 | Paul White |
+|        5011 | Sam Lawson |
++-------------+------------+
+
+mysql> SELECT name FROM customer;
+ERROR 1142 (42000): SELECT command denied to user 'matt'@'localhost' for table 'customer'
+
+The Error message is showing because the user 'matt' does not have SELECT rights to the customer table, only to salesman.
+
+
+3. As root user:
+Grant matt SELECT and DELETE privileges to customer and orders
+Grant Matt UPDATE privilege to orders table
+
+mysql> GRANT SELECT, DELETE, UPDATE on mybusiness.orders TO 'matt'@'localhost';
+mysql> GRANT SELECT, DELETE ON mybusiness.customer TO 'matt'@'localhost';
+
+
+4. As matt
+Find all the customers (all columns) from customer table
+Update order whose id is 70008 purch_amount to 5800
+
+mysql> SELECT * FROM customer;
++-------------+----------------+------------+-------+-------------+
+| customer_id | cust_name      | city       | grade | salesman_id |
++-------------+----------------+------------+-------+-------------+
+|        3001 | Brad Guzan     | London     |   300 |        5005 |
+|        3002 | Nick Rimando   | New York   |   100 |        5001 |
+|        3003 | Jozy Altidor   | Moscow     |   200 |        5009 |
+|        3004 | Fabian Johnson | Paris      |   300 |        5006 |
+|        3005 | Graham Zusi    | California |   300 |        5002 |
+|        3007 | Brad Davis     | New York   |   200 |        5001 |
+|        3008 | Julian Green   | London     |   300 |        5002 |
+|        3009 | Geoff Cameron  | Berlin     |   100 |        5003 |
++-------------+----------------+------------+-------+-------------+
+
+mysql> UPDATE orders
+    -> SET purch_amt = 5800
+    -> WHERE ord_no = 70008;
+
+
+5. As root user:
+Create user lisa with password tes
+
+mysql> CREATE USER 'lisa'@'localhost' IDENTIFIED BY 'test';
+
+
+6. As root user:
+Create a role called staff
+Add lisa and matt to staff
+Grant SELECT, UPDATE and INSERT privileges to all your database tables
+(salesman, customer, orders) to staff role
+
+it seems that I cannot add roles for some reason, therefore I am not sure if I can proceed with the task correctly.
+
+mysql> CREATE ROLE 'staff';
+mysql> GRANT SELECT, UPDATE, INSERT ON mybusiness.* TO 'staff';
+mysql> GRANT 'staff' TO 'lisa'@'localhost', 'matt'@'localhost';
+
+7. As lisa
+Write one SELECT, INSERT and UPDATE SQL command to one of the tables and
+check if that works.
+Try to delete the row you inserted before. What happens?
+
+For some reason, I cannot access any table as lisa, it seems to be that the Role is added just as a new user instead. 
+However, I know that I could not delete the row as lisa, as lisa does not have the delete privileges, and neither does the "staff" role
+
+
+8. Do the same as in the previous task but as matt. Is there any difference compared to
+what you did as lisa?
+
+matt should be able to delete from customers and orders, as we gave matt the specific user privileges earlier.
+
+
+9. As root user:
+drop DELETE privilege from tables customer and orders from Matt. Try out that Matt
+cannot delete rows anymore. 
+
+mysql> REVOKE DELETE ON mybusiness.customer FROM 'matt'@'localhost';
+mysql> REVOKE DELETE ON mybusiness.orders FROM 'matt'@'localhost';
+
+Deleting as matt does not work anymore.
+
+
+10. As root user:
+Drop user lisa. 
+
+mysql> DROP USER 'lisa'@'localhost';
+
